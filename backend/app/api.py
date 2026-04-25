@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from backend.app.auth.views import router as auth_router
+from backend.app.auth.views import auth_router, user_router
 
 
 class ErrorMessage(BaseModel):
@@ -36,3 +36,4 @@ def healthcheck():
 
 
 api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
+api_router.include_router(user_router, prefix="/users", tags=["users"])

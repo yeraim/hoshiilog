@@ -73,3 +73,6 @@ class UserService:
             )
 
         return self._generate_jwt_token(str(user.email))
+
+    async def get_users(self):
+        return await self.repo.get_users()

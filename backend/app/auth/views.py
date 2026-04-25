@@ -11,17 +11,18 @@ from backend.app.auth.services import UserService
 user_service = Annotated[UserService, Depends(UserService)]
 current_user = Annotated[User, Depends(get_current_user)]
 
-router = APIRouter()
+auth_router = APIRouter()
+user_router = APIRouter()
 
 
-@router.post("/register", response_model=UserRead)
+@auth_router.post("/register", response_model=UserRead)
 async def register_user(user: UserCreate, service: user_service):
     """Endpoint to register a new user."""
 
     return await service.register_new_user(user.email, user.password)
 
 
-@router.post("/login", response_model=Token)
+@auth_router.post("/login", response_model=Token)
 async def login(
     form: Annotated[OAuth2PasswordRequestForm, Depends()], service: user_service
 ):
@@ -30,7 +31,12 @@ async def login(
     return await service.authenticate_user(form.username, form.password)
 
 
-@router.get("/me", response_model=UserRead)
+@auth_router.get("/me", response_model=UserRead)
 async def me(user: current_user):
     """Endpoint to get current user."""
     return user
+
+
+@user_router.get("", response_model=list[UserRead])
+async def get_users(user: current_user, service: user_service):
+    return await service.get_users()

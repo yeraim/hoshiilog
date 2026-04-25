@@ -1,3 +1,5 @@
+from typing import Sequence
+
 from sqlalchemy import select
 
 from backend.app.auth.models import User
@@ -21,6 +23,10 @@ class UserRepository:
         self.session.add(new_user)
         await self.session.flush()
         return new_user
+
+    async def get_users(self) -> Sequence[User]:
+        result = await self.session.execute(select(User))
+        return result.scalars().all()
 
     async def commit(self) -> None:
         await self.session.commit()
