@@ -19,6 +19,11 @@ class UserRepository:
         """Create a new user with the given email and password hash."""
         new_user = User(email=email, password=password_hash)
         self.session.add(new_user)
-        await self.session.commit()
-        await self.session.refresh(new_user)
+        await self.session.flush()
         return new_user
+
+    async def commit(self) -> None:
+        await self.session.commit()
+
+    async def refresh(self, instance: User) -> None:
+        await self.session.refresh(instance)

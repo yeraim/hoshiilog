@@ -29,6 +29,7 @@ class Settings(CustomBaseSettings):
     DATABASE_POOL_PRE_PING: bool = True
     REDIS_URL: Optional[str] = None
     SECRET_KEY: SecretStr = SecretStr("super-secret-key-for-dev")
+    ALGORITHM: str = "HS256"
 
     ENVIRONMENT: Environment = Environment.PRODUCTION
 

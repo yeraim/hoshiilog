@@ -1,14 +1,21 @@
 from pydantic import UUID4, BaseModel, EmailStr
 
 
-class UserCreate(BaseModel):
+class UserBase(BaseModel):
     email: EmailStr
+
+
+class UserCreate(UserBase):
     password: str
 
 
-class UserRead(BaseModel):
+class UserRead(UserBase):
     id: UUID4
-    email: EmailStr
 
     # class Config:
     #     orm_mode = True
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
