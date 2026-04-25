@@ -13,12 +13,10 @@ class UserRepository:
         self.session = session
 
     async def get_user_by_email(self, email: str) -> User | None:
-        """Fetch a user by their email."""
         result = await self.session.execute(select(User).where(User.email == email))
         return result.scalars().first()
 
     async def create_user(self, email: str, password_hash: bytes) -> User:
-        """Create a new user with the given email and password hash."""
         new_user = User(email=email, password=password_hash)
         self.session.add(new_user)
         await self.session.flush()
@@ -27,6 +25,11 @@ class UserRepository:
     async def get_users(self) -> Sequence[User]:
         result = await self.session.execute(select(User))
         return result.scalars().all()
+
+    async def change_password(self, user: User, new_password: bytes) -> User:
+        user.password = new_password
+        await self.session.flush()
+        return user
 
     async def commit(self) -> None:
         await self.session.commit()

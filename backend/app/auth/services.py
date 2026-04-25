@@ -1,11 +1,12 @@
 import asyncio
 from datetime import datetime, timedelta, timezone
-from typing import Annotated, Any, cast
+from typing import Annotated, Any
 
 import bcrypt
 from fastapi import Depends, HTTPException, status
 from jose import jwt
 
+from backend.app.auth.models import User
 from backend.app.auth.repositories import UserRepository
 from backend.app.config import settings
 
@@ -65,14 +66,28 @@ class UserService:
                 detail="Account is disabled",
             )
 
-        if not await self._check_password(raw_password, cast(bytes, user.password)):
+        if not await self._check_password(raw_password, user.password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        return self._generate_jwt_token(str(user.email))
+        return self._generate_jwt_token(user.email)
 
     async def get_users(self):
         return await self.repo.get_users()
+
+    async def change_password(self, user: User, old_password: str, new_password: str):
+        if not await self._check_password(old_password, user.password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid email or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        hashed_password = await self._hash_password(new_password)
+        user = await self.repo.change_password(user, hashed_password)
+        await self.repo.commit()
+        await self.repo.refresh(user)
+        return user

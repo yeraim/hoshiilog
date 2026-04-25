@@ -9,6 +9,11 @@ class UserCreate(UserBase):
     password: str
 
 
+class UserChangePassword(BaseModel):
+    old_password: str
+    new_password: str
+
+
 class UserRead(UserBase):
     id: UUID4
 
