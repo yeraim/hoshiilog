@@ -9,13 +9,13 @@ from jose import jwt
 from backend.app.auth.repositories import UserRepository
 from backend.app.config import settings
 
-UserRepo = Annotated[UserRepository, Depends(UserRepository)]
+user_repo = Annotated[UserRepository, Depends(UserRepository)]
 
 
 class UserService:
     """Service for user-related business logic."""
 
-    def __init__(self, repo: UserRepo):
+    def __init__(self, repo: user_repo):
         self.repo = repo
 
     def _generate_jwt_token(self, username: str) -> dict[str, str]:
