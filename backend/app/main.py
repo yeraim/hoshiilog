@@ -84,7 +84,7 @@ app.include_router(api_router)
 # # we create the Web API framework
 # api = FastAPI(
 #     title="Dispatch",
-#     description="Welcome to Dispatch's API documentation! Here you will able to discover all of the ways you can interact with the Dispatch API.",
+#     description="Welcome to Dispatch's API documentation! Here you will able to discover all of the ways you can interact with the Dispatch API.",  # noqa: E501
 #     root_path="/api/v1",
 #     docs_url=None,
 #     openapi_url="/docs/openapi.json",
