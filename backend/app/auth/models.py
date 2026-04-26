@@ -18,8 +18,11 @@ class User(Base, TimeStampMixin):
     password: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
-    friends: Mapped[list["Friends"]] = relationship(
-        "Friends", foreign_keys="Friends.person_id", back_populates="person"
+    friends: Mapped[list["User"]] = relationship(
+        "User",
+        secondary="friends",
+        primaryjoin="User.id==Friends.person_id",
+        secondaryjoin="User.id==Friends.friend_id",
     )
 
 
@@ -37,7 +40,5 @@ class Friends(Base, TimeStampMixin):
         UUID(as_uuid=True), ForeignKey("user.id"), nullable=False
     )
 
-    person: Mapped["User"] = relationship(
-        "User", foreign_keys=[person_id], back_populates="friends"
-    )
+    person: Mapped["User"] = relationship("User", foreign_keys=[person_id])
     friend: Mapped["User"] = relationship("User", foreign_keys=[friend_id])

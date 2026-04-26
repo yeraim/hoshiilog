@@ -1,4 +1,4 @@
-from pydantic import UUID4, BaseModel, EmailStr
+from pydantic import UUID4, BaseModel, ConfigDict, EmailStr
 
 
 class UserBase(BaseModel):
@@ -15,10 +15,9 @@ class UserChangePassword(BaseModel):
 
 
 class UserRead(UserBase):
-    id: UUID4
+    model_config = ConfigDict(from_attributes=True)
 
-    # class Config:
-    #     orm_mode = True
+    id: UUID4
 
 
 class Token(BaseModel):
