@@ -1,20 +1,18 @@
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import Column, DateTime, event, func
-from sqlalchemy.orm import Mapper
+from sqlalchemy import DateTime, event, func
+from sqlalchemy.orm import Mapped, Mapper, mapped_column
 
 
-class TimeStampMixin(object):
-    """Timestamping mixin for created_at and updated_at fields."""
-
-    created_at = Column(
+class TimeStampMixin:
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
-    updated_at = Column(
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         default=lambda: datetime.now(timezone.utc),
