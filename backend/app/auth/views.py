@@ -1,3 +1,4 @@
+import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
@@ -5,7 +6,12 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from backend.app.auth.dependencies import get_current_user
 from backend.app.auth.models import User
-from backend.app.auth.schemas import Token, UserChangePassword, UserCreate, UserRead
+from backend.app.auth.schemas import (
+    Token,
+    UserChangePassword,
+    UserCreate,
+    UserRead,
+)
 from backend.app.auth.services import UserService
 
 user_service = Annotated[UserService, Depends(UserService)]
@@ -40,6 +46,13 @@ async def me(user: current_user):
 @user_router.get("", response_model=list[UserRead])
 async def get_users(user: current_user, service: user_service):
     return await service.get_users()
+
+
+@user_router.get("/{user_id}", response_model=UserRead)
+async def get_user(
+    user_id: uuid.UUID, current_user: current_user, service: user_service
+):
+    return await service.get_user(user_id)
 
 
 @user_router.post("/change_password", response_model=UserRead)

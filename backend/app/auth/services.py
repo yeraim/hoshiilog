@@ -1,4 +1,5 @@
 import asyncio
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any
 
@@ -77,6 +78,9 @@ class UserService:
 
     async def get_users(self):
         return await self.repo.get_users()
+
+    async def get_user(self, user_id: uuid.UUID):
+        return await self.repo.get_user(user_id)
 
     async def change_password(self, user: User, old_password: str, new_password: str):
         if not await self._check_password(old_password, user.password):

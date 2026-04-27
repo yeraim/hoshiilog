@@ -1,3 +1,4 @@
+import uuid
 from typing import Sequence
 
 from sqlalchemy import select
@@ -25,6 +26,10 @@ class UserRepository:
     async def get_users(self) -> Sequence[User]:
         result = await self.session.execute(select(User))
         return result.scalars().all()
+
+    async def get_user(self, id: uuid.UUID) -> User | None:
+        result = await self.session.execute(select(User).where(User.id == id))
+        return result.scalars().first()
 
     async def change_password(self, user: User, new_password: bytes) -> User:
         user.password = new_password
