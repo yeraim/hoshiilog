@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.database import Base
 from backend.app.mixins import TimeStampMixin
+from backend.app.wishes.models import Wish
 
 
 class User(Base, TimeStampMixin):
@@ -18,6 +19,12 @@ class User(Base, TimeStampMixin):
     password: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
+    wishes: Mapped[list["Wish"]] = relationship(
+        "Wish", back_populates="owner", foreign_keys="[Wish.user_id]"
+    )
+    reserved_wishes: Mapped[list["Wish"]] = relationship(
+        "Wish", back_populates="reserver", foreign_keys="[Wish.reserved_by_id]"
+    )
     friends: Mapped[list["User"]] = relationship(
         "User",
         secondary="friends",
@@ -26,6 +33,7 @@ class User(Base, TimeStampMixin):
     )
 
 
+# ! TODO: rework the followers model
 class Friends(Base, TimeStampMixin):
     __repr_attrs__ = ["id"]
     __table_args__ = (UniqueConstraint("person_id", "friend_id"),)

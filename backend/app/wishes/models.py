@@ -57,9 +57,7 @@ class Wish(Base, TimeStampMixin):
     status: Mapped[WishStatus] = mapped_column(
         Enum(WishStatus), default=WishStatus.ACTIVE
     )
-    type: Mapped[WishType] = mapped_column(
-        Enum(WishType), default=WishType.PERSONAL
-    )
+    type: Mapped[WishType] = mapped_column(Enum(WishType), default=WishType.PERSONAL)
     category: Mapped[WishCategory] = mapped_column(
         Enum(WishCategory), default=WishCategory.LOW
     )
@@ -69,5 +67,9 @@ class Wish(Base, TimeStampMixin):
         nullable=True,
     )
 
-    user: Mapped["User"] = relationship("User", foreign_keys=[user_id])
-    reserved_by: Mapped["User"] = relationship("User", foreign_keys=[reserved_by_id])
+    owner: Mapped["User"] = relationship(
+        "User", foreign_keys=[user_id], back_populates="wishes"
+    )
+    reserver: Mapped["User"] = relationship(
+        "User", foreign_keys=[reserved_by_id], back_populates="reserved_wishes"
+    )
