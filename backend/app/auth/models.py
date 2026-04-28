@@ -1,12 +1,16 @@
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, ForeignKey, LargeBinary, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.database import Base
 from backend.app.mixins import TimeStampMixin
-from backend.app.wishes.models import Wish
+
+if TYPE_CHECKING:
+    from backend.app.wishes.models import Wish
 
 
 class User(Base, TimeStampMixin):
@@ -25,28 +29,46 @@ class User(Base, TimeStampMixin):
     reserved_wishes: Mapped[list["Wish"]] = relationship(
         "Wish", back_populates="reserver", foreign_keys="[Wish.reserved_by_id]"
     )
-    friends: Mapped[list["User"]] = relationship(
-        "User",
-        secondary="friends",
-        primaryjoin="User.id==Friends.person_id",
-        secondaryjoin="User.id==Friends.friend_id",
+
+    _following_relationships = relationship(
+        "Follow",
+        back_populates="following_user",
+        foreign_keys="[Follow.following_user_id]",
+    )
+    _follower_relationships = relationship(
+        "Follow",
+        back_populates="followed_user",
+        foreign_keys="[Follow.followed_user_id]",
+    )
+
+    subscriptions: AssociationProxy[list["User"]] = association_proxy(
+        target_collection="_following_relationships",
+        attr="followed_user",
+        creator=lambda user_obj: Follow(followed_user=user_obj),  # type: ignore
+    )
+
+    followers: AssociationProxy[list["User"]] = association_proxy(
+        target_collection="_follower_relationships", attr="following_user"
     )
 
 
-# ! TODO: rework the followers model
-class Friends(Base, TimeStampMixin):
+class Follow(Base, TimeStampMixin):
     __repr_attrs__ = ["id"]
-    __table_args__ = (UniqueConstraint("person_id", "friend_id"),)
+    __table_args__ = (UniqueConstraint("following_user_id", "followed_user_id"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    person_id: Mapped[uuid.UUID] = mapped_column(
+    following_user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("user.id"), nullable=False
     )
-    friend_id: Mapped[uuid.UUID] = mapped_column(
+    followed_user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("user.id"), nullable=False
     )
 
-    person: Mapped["User"] = relationship("User", foreign_keys=[person_id])
-    friend: Mapped["User"] = relationship("User", foreign_keys=[friend_id])
+    following_user: Mapped["User"] = relationship(
+        "User", foreign_keys=[following_user_id], back_populates="subscriptions"
+    )
+    followed_user: Mapped["User"] = relationship(
+        "User", foreign_keys=[followed_user_id], back_populates="followers"
+    )

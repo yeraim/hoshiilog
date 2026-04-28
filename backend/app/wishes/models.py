@@ -2,6 +2,7 @@ import datetime
 import decimal
 import enum
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     DateTime,
@@ -13,9 +14,11 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from backend.app.auth.models import User
 from backend.app.database import Base
 from backend.app.mixins import TimeStampMixin
+
+if TYPE_CHECKING:
+    from backend.app.auth.models import User
 
 
 class WishStatus(enum.Enum):
