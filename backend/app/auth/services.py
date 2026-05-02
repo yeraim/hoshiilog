@@ -8,10 +8,11 @@ from fastapi import Depends, HTTPException, status
 from jose import jwt
 
 from backend.app.auth.models import User
-from backend.app.auth.repositories import UserRepository
+from backend.app.auth.repositories import FollowRepository, UserRepository
 from backend.app.config import settings
 
 user_repo = Annotated[UserRepository, Depends(UserRepository)]
+follow_repo = Annotated[FollowRepository, Depends(FollowRepository)]
 
 
 class UserService:
@@ -95,3 +96,32 @@ class UserService:
         await self.repo.commit()
         await self.repo.refresh(user)
         return user
+
+
+class FollowService:
+    def __init__(self, follow_repo: follow_repo, user_repo: user_repo) -> None:
+        self.follow_repo = follow_repo
+        self.user_repo = user_repo
+
+    async def follow_user(self, following_user: User, followed_user_id: uuid.UUID):
+        followed_user = await self.user_repo.get_user(followed_user_id)
+        if not followed_user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid id of followed_user",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        if following_user.id == followed_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, detail="user can't follow himself"
+            )
+        is_followed = await self.follow_repo.check_followers(
+            following_user, followed_user
+        )
+        if is_followed:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="following_user is already followed to followed_user",
+            )
+        await self.follow_repo.follow_user(following_user, followed_user)
+        await self.follow_repo.commit()

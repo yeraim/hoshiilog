@@ -12,9 +12,10 @@ from backend.app.auth.schemas import (
     UserCreate,
     UserRead,
 )
-from backend.app.auth.services import UserService
+from backend.app.auth.services import FollowService, UserService
 
 user_service = Annotated[UserService, Depends(UserService)]
+follow_service = Annotated[FollowService, Depends(FollowService)]
 current_user = Annotated[User, Depends(get_current_user)]
 
 auth_router = APIRouter()
@@ -60,3 +61,8 @@ async def change_password(
     data: UserChangePassword, user: current_user, service: user_service
 ):
     return await service.change_password(user, data.old_password, data.new_password)
+
+
+@user_router.post("/follow_user/{user_id}")
+async def follow_user(user_id: uuid.UUID, user: current_user, service: follow_service):
+    return await service.follow_user(user, user_id)

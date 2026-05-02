@@ -3,11 +3,22 @@ from typing import Sequence
 
 from sqlalchemy import select
 
-from backend.app.auth.models import User
-from backend.app.database import DbSession
+from backend.app.auth.models import Follow, User
+from backend.app.database import Base, DbSession
 
 
-class UserRepository:
+class BaseRepository:
+    def __init__(self, session: DbSession) -> None:
+        self.session = session
+
+    async def commit(self) -> None:
+        await self.session.commit()
+
+    async def refresh(self, instance: Base) -> None:
+        await self.session.refresh(instance)
+
+
+class UserRepository(BaseRepository):
     """Repository for user-related database operations."""
 
     def __init__(self, session: DbSession):
@@ -27,8 +38,8 @@ class UserRepository:
         result = await self.session.execute(select(User))
         return result.scalars().all()
 
-    async def get_user(self, id: uuid.UUID) -> User | None:
-        result = await self.session.execute(select(User).where(User.id == id))
+    async def get_user(self, user_id: uuid.UUID) -> User | None:
+        result = await self.session.execute(select(User).where(User.id == user_id))
         return result.scalars().first()
 
     async def change_password(self, user: User, new_password: bytes) -> User:
@@ -36,8 +47,25 @@ class UserRepository:
         await self.session.flush()
         return user
 
-    async def commit(self) -> None:
-        await self.session.commit()
 
-    async def refresh(self, instance: User) -> None:
-        await self.session.refresh(instance)
+class FollowRepository(BaseRepository):
+    async def follow_user(self, following_user: User, followed_user: User) -> Follow:
+        new_follow = Follow(following_user=following_user, followed_user=followed_user)
+        self.session.add(new_follow)
+        await self.session.flush()
+        return new_follow
+
+    async def check_followers(
+        self, following_user: User, followed_user: User
+    ) -> bool | None:
+        result = await self.session.execute(
+            select(
+                select(Follow)
+                .where(
+                    Follow.following_user_id == following_user.id,
+                    Follow.followed_user_id == followed_user.id,
+                )
+                .exists()
+            )
+        )
+        return result.scalar()
