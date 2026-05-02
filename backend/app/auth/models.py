@@ -67,8 +67,12 @@ class Follow(Base, TimeStampMixin):
     )
 
     following_user: Mapped["User"] = relationship(
-        "User", foreign_keys=[following_user_id], back_populates="subscriptions"
+        "User",
+        foreign_keys=[following_user_id],
+        back_populates="_following_relationships",
     )
     followed_user: Mapped["User"] = relationship(
-        "User", foreign_keys=[followed_user_id], back_populates="followers"
+        "User",
+        foreign_keys=[followed_user_id],
+        back_populates="_follower_relationships",
     )
