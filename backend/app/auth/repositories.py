@@ -2,6 +2,7 @@ import uuid
 from typing import Sequence
 
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from backend.app.auth.models import Follow, User
 from backend.app.database import Base, DbSession
@@ -39,7 +40,18 @@ class UserRepository(BaseRepository):
         return result.scalars().all()
 
     async def get_user(self, user_id: uuid.UUID) -> User | None:
-        result = await self.session.execute(select(User).where(User.id == user_id))
+        result = await self.session.execute(
+            select(User)
+            .where(User.id == user_id)
+            .options(
+                selectinload(User.following_relationships).selectinload(
+                    Follow.followed_user
+                ),
+                selectinload(User.follower_relationships).selectinload(
+                    Follow.following_user
+                ),
+            )
+        )
         return result.scalars().first()
 
     async def change_password(self, user: User, new_password: bytes) -> User:

@@ -20,6 +20,11 @@ class UserRead(UserBase):
     id: UUID4
 
 
+class DetailedUserRead(UserRead):
+    subscriptions: list[UserRead]
+    followers: list[UserRead]
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str

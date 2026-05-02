@@ -7,6 +7,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from backend.app.auth.dependencies import get_current_user
 from backend.app.auth.models import User
 from backend.app.auth.schemas import (
+    DetailedUserRead,
     Token,
     UserChangePassword,
     UserCreate,
@@ -49,7 +50,7 @@ async def get_users(user: current_user, service: user_service):
     return await service.get_users()
 
 
-@user_router.get("/{user_id}", response_model=UserRead)
+@user_router.get("/{user_id}", response_model=DetailedUserRead)
 async def get_user(
     user_id: uuid.UUID, current_user: current_user, service: user_service
 ):

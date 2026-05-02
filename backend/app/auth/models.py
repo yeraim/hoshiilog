@@ -30,25 +30,25 @@ class User(Base, TimeStampMixin):
         "Wish", back_populates="reserver", foreign_keys="[Wish.reserved_by_id]"
     )
 
-    _following_relationships = relationship(
+    following_relationships = relationship(
         "Follow",
         back_populates="following_user",
         foreign_keys="[Follow.following_user_id]",
     )
-    _follower_relationships = relationship(
+    follower_relationships = relationship(
         "Follow",
         back_populates="followed_user",
         foreign_keys="[Follow.followed_user_id]",
     )
 
     subscriptions: AssociationProxy[list["User"]] = association_proxy(
-        target_collection="_following_relationships",
+        target_collection="following_relationships",
         attr="followed_user",
         creator=lambda user_obj: Follow(followed_user=user_obj),  # type: ignore
     )
 
     followers: AssociationProxy[list["User"]] = association_proxy(
-        target_collection="_follower_relationships", attr="following_user"
+        target_collection="follower_relationships", attr="following_user"
     )
 
 
@@ -69,10 +69,10 @@ class Follow(Base, TimeStampMixin):
     following_user: Mapped["User"] = relationship(
         "User",
         foreign_keys=[following_user_id],
-        back_populates="_following_relationships",
+        back_populates="following_relationships",
     )
     followed_user: Mapped["User"] = relationship(
         "User",
         foreign_keys=[followed_user_id],
-        back_populates="_follower_relationships",
+        back_populates="follower_relationships",
     )
