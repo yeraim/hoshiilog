@@ -66,3 +66,10 @@ async def change_password(
 @user_router.post("/follow_user/{user_id}")
 async def follow_user(user_id: uuid.UUID, user: current_user, service: follow_service):
     return await service.follow_user(user, user_id)
+
+
+@user_router.post("/unfollow_user/{user_id}")
+async def unfollow_user(
+    user_id: uuid.UUID, user: current_user, service: follow_service
+):
+    return await service.unfollow_user(user, user_id)

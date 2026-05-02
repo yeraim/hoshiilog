@@ -55,6 +55,17 @@ class FollowRepository(BaseRepository):
         await self.session.flush()
         return new_follow
 
+    async def unfollow_user(self, following_user: User, followed_user: User):
+        result = await self.session.execute(
+            select(Follow).where(
+                Follow.following_user_id == following_user.id,
+                Follow.followed_user_id == followed_user.id,
+            )
+        )
+        follow_for_deletion = result.scalar_one_or_none()
+        if follow_for_deletion:
+            await self.session.delete(follow_for_deletion)
+
     async def check_followers(
         self, following_user: User, followed_user: User
     ) -> bool | None:
