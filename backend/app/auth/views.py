@@ -27,7 +27,7 @@ user_router = APIRouter()
 async def register_user(user: UserCreate, service: user_service):
     """Endpoint to register a new user."""
 
-    return await service.register_new_user(user.email, user.password)
+    return await service.register_new_user(user.email, user.name, user.password)
 
 
 @auth_router.post("/login", response_model=Token)

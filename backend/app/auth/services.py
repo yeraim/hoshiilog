@@ -39,7 +39,7 @@ class UserService:
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, bcrypt.checkpw, raw.encode(), hashed)
 
-    async def register_new_user(self, email: str, raw_password: str):
+    async def register_new_user(self, email: str, name: str, raw_password: str):
         existing_user = await self.repo.get_user_by_email(email)
         if existing_user:
             raise HTTPException(
@@ -48,7 +48,7 @@ class UserService:
             )
 
         hashed_password = await self._hash_password(raw_password)
-        user = await self.repo.create_user(email, hashed_password)
+        user = await self.repo.create_user(email, name, hashed_password)
         await self.repo.commit()
         await self.repo.refresh(user)
         return user

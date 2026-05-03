@@ -3,6 +3,7 @@ from pydantic import UUID4, BaseModel, ConfigDict, EmailStr
 
 class UserBase(BaseModel):
     email: EmailStr
+    name: str
 
 
 class UserCreate(UserBase):

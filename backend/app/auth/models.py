@@ -21,7 +21,10 @@ class User(Base, TimeStampMixin):
     )
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     password: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    is_staff: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    pfp: Mapped[str] = mapped_column(String(255), nullable=True)
 
     wishes: Mapped[list["Wish"]] = relationship(
         "Wish", back_populates="owner", foreign_keys="[Wish.user_id]"

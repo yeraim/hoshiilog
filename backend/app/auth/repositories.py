@@ -29,8 +29,8 @@ class UserRepository(BaseRepository):
         result = await self.session.execute(select(User).where(User.email == email))
         return result.scalars().first()
 
-    async def create_user(self, email: str, password_hash: bytes) -> User:
-        new_user = User(email=email, password=password_hash)
+    async def create_user(self, email: str, name: str, password_hash: bytes) -> User:
+        new_user = User(email=email, name=name, password=password_hash)
         self.session.add(new_user)
         await self.session.flush()
         return new_user
