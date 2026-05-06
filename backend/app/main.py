@@ -57,7 +57,7 @@ if settings.ENVIRONMENT.is_deployed:
 
 app = FastAPI(**app_configs, lifespan=lifespan)
 
-app.include_router(api_router)
+app.include_router(api_router, prefix="/api")
 
 
 # # package backend and frontend together, and serve the frontend from the backend
