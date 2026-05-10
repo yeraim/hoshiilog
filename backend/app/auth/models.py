@@ -19,12 +19,12 @@ class User(Base, TimeStampMixin):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    password: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
-    is_staff: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    pfp: Mapped[str] = mapped_column(String(255), nullable=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True)
+    password: Mapped[bytes] = mapped_column(LargeBinary)
+    name: Mapped[str] = mapped_column(String(100))
+    is_staff: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    pfp: Mapped[str | None] = mapped_column(String(255))
 
     wishes: Mapped[list["Wish"]] = relationship(
         "Wish", back_populates="owner", foreign_keys="[Wish.user_id]"
@@ -63,10 +63,10 @@ class Follow(Base, TimeStampMixin):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     following_user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("user.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("user.id")
     )
     followed_user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("user.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("user.id")
     )
 
     following_user: Mapped["User"] = relationship(

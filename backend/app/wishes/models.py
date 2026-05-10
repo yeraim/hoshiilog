@@ -47,16 +47,16 @@ class Wish(Base, TimeStampMixin):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("user.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("user.id")
     )
-    reserved_by_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("user.id"), nullable=True
+    reserved_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("user.id")
     )
 
-    title: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    body: Mapped[str] = mapped_column(String(255), nullable=False)
-    link: Mapped[str] = mapped_column(String(255), nullable=False)
-    image_url: Mapped[str] = mapped_column(String(255), nullable=False)
+    title: Mapped[str] = mapped_column(String(255), unique=True)
+    body: Mapped[str | None] = mapped_column(String(255))
+    link: Mapped[str | None] = mapped_column(String(255))
+    image_url: Mapped[str | None] = mapped_column(String(255))
     status: Mapped[WishStatus] = mapped_column(
         Enum(WishStatus), default=WishStatus.ACTIVE
     )
@@ -64,10 +64,9 @@ class Wish(Base, TimeStampMixin):
     category: Mapped[WishCategory] = mapped_column(
         Enum(WishCategory), default=WishCategory.LOW
     )
-    price: Mapped[decimal.Decimal] = mapped_column(Numeric, nullable=False)
-    reserved_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True),
-        nullable=True,
+    price: Mapped[decimal.Decimal] = mapped_column(Numeric)
+    reserved_at: Mapped[datetime.datetime | None] = mapped_column(
+        DateTime(timezone=True)
     )
 
     owner: Mapped["User"] = relationship(
