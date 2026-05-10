@@ -5,25 +5,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from backend.app.auth.models import Follow, User
-from backend.app.database import Base, DbSession
-
-
-class BaseRepository:
-    def __init__(self, session: DbSession) -> None:
-        self.session = session
-
-    async def commit(self) -> None:
-        await self.session.commit()
-
-    async def refresh(self, instance: Base) -> None:
-        await self.session.refresh(instance)
+from backend.app.base import BaseRepository
 
 
 class UserRepository(BaseRepository):
     """Repository for user-related database operations."""
-
-    def __init__(self, session: DbSession):
-        self.session = session
 
     async def get_user_by_email(self, email: str) -> User | None:
         result = await self.session.execute(select(User).where(User.email == email))

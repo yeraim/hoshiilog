@@ -7,7 +7,7 @@ from jose import JWTError, jwt
 from backend.app.auth.repositories import UserRepository
 from backend.app.config import settings
 
-oauth2_cheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_cheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 user_repo = Annotated[UserRepository, Depends(UserRepository)]
 
 
