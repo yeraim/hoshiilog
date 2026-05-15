@@ -53,3 +53,10 @@ class WishRepository(BaseRepository):
 
         await self.session.flush()
         return wish
+
+    async def cancel_reservation(self, wish: Wish):
+        wish.reserver = None
+        wish.reserved_at = None
+
+        await self.session.flush()
+        return wish

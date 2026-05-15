@@ -50,8 +50,15 @@ async def delete_wish(
     await service.delete(wish_id, current_user)
 
 
-@wish_router.post("/reserve/{wish_id}", response_model=WishRead)
+@wish_router.post("/reserve_wish/{wish_id}", response_model=WishRead)
 async def reserve_wish(
     wish_id: uuid.UUID, service: wish_service, current_user: current_user
 ):
     return await service.reserve(wish_id, current_user)
+
+
+@wish_router.post("/cancel_reservation/{wish_id}", response_model=WishRead)
+async def cancel_reservation(
+    wish_id: uuid.UUID, service: wish_service, current_user: current_user
+):
+    return await service.cancel_reservation(wish_id, current_user)

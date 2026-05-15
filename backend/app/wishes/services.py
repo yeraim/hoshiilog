@@ -72,7 +72,7 @@ class WishService:
         await self.repo.delete(wish)
         await self.repo.commit()
 
-    async def reserve(self, wish_id: uuid.UUID, current_user: User):
+    async def reserve(self, wish_id: uuid.UUID, reserver: User):
         wish = await self.repo.get_by_id(wish_id)
 
         if not wish:
@@ -81,7 +81,7 @@ class WishService:
                 detail="Invalid id of wish",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        if wish.user_id == current_user.id:
+        if wish.user_id == reserver.id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="You can't reserve your own wish",
@@ -99,7 +99,32 @@ class WishService:
                 detail="Wish is already reserved",
             )
 
-        wish = await self.repo.reserve(wish, current_user)
+        wish = await self.repo.reserve(wish, reserver)
+        await self.repo.commit()
+        await self.repo.refresh(wish)
+        return wish
+
+    async def cancel_reservation(self, wish_id: uuid.UUID, reserver: User):
+        wish = await self.repo.get_by_id(wish_id)
+
+        if not wish:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Invalid id of wish",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        if not wish.reserver:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Wish is not reserved",
+            )
+        if wish.reserver != reserver:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can't unreserve someone's reservation",
+            )
+
+        wish = await self.repo.cancel_reservation(wish)
         await self.repo.commit()
         await self.repo.refresh(wish)
         return wish
