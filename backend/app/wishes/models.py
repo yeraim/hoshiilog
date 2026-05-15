@@ -24,7 +24,6 @@ if TYPE_CHECKING:
 class WishStatus(enum.Enum):
     ARCHIVED = 0
     ACTIVE = 1
-    RESERVED = 2
     DONE = 3
 
 

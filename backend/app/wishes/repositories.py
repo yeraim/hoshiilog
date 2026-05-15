@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone
 from typing import Sequence
 
 from sqlalchemy import select
@@ -45,3 +46,10 @@ class WishRepository(BaseRepository):
 
     async def delete(self, wish: Wish):
         return await self.session.delete(wish)
+
+    async def reserve(self, wish: Wish, reserver: User):
+        wish.reserver = reserver
+        wish.reserved_at = datetime.now(timezone.utc)
+
+        await self.session.flush()
+        return wish
