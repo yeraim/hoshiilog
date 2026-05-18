@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from backend.app.auth.models import User
 from backend.app.base import BaseRepository
-from backend.app.wishes.models import Wish
+from backend.app.wishes.models import Wish, WishType
 from backend.app.wishes.schemas import WishCreate, WishUpdate
 
 
@@ -23,8 +23,22 @@ class WishRepository(BaseRepository):
         await self.session.flush()
         return new_wish
 
-    async def get_all(self) -> Sequence[Wish]:
-        result = await self.session.execute(select(Wish))
+    async def get_by_user(self, user_id: uuid.UUID) -> Sequence[Wish]:
+        result = await self.session.execute(select(Wish).where(Wish.user_id == user_id))
+        return result.scalars().all()
+
+    async def get_by_user_public(self, user_id: uuid.UUID) -> Sequence[Wish]:
+        result = await self.session.execute(
+            select(Wish).where(Wish.user_id == user_id, Wish.type == WishType.PUBLIC)
+        )
+        return result.scalars().all()
+
+    async def get_by_user_friends(self, user_id: uuid.UUID) -> Sequence[Wish]:
+        result = await self.session.execute(
+            select(Wish).where(
+                Wish.user_id == user_id, Wish.type == WishType.FRIENDS_ONLY
+            )
+        )
         return result.scalars().all()
 
     async def get_by_id(self, wish_id: uuid.UUID) -> Wish | None:

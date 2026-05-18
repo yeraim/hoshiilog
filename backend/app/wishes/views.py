@@ -21,9 +21,16 @@ async def create_wish(
     return await service.create(current_user, wish)
 
 
-@wish_router.get("", response_model=list[WishRead])
-async def get_wishes(service: wish_service, current_user: current_user):
-    return await service.get_all()
+@wish_router.get("/me", response_model=list[WishRead])
+async def get_my_wishes(service: wish_service, current_user: current_user):
+    return await service.get_by_user(current_user)
+
+
+@wish_router.get("/user/{user_id}", response_model=list[WishRead])
+async def get_wishes(
+    user_id: uuid.UUID, service: wish_service, current_user: current_user
+):
+    return await service.get_by_user(current_user, user_id)
 
 
 @wish_router.get("/{wish_id}", response_model=WishRead)
