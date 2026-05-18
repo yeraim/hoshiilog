@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from typing import Sequence
 
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from backend.app.auth.models import User
 from backend.app.base import BaseRepository
@@ -24,12 +25,18 @@ class WishRepository(BaseRepository):
         return new_wish
 
     async def get_by_user(self, user_id: uuid.UUID) -> Sequence[Wish]:
-        result = await self.session.execute(select(Wish).where(Wish.user_id == user_id))
+        result = await self.session.execute(
+            select(Wish)
+            .where(Wish.user_id == user_id)
+            .options(selectinload(Wish.reserver))
+        )
         return result.scalars().all()
 
     async def get_by_user_public(self, user_id: uuid.UUID) -> Sequence[Wish]:
         result = await self.session.execute(
-            select(Wish).where(Wish.user_id == user_id, Wish.type == WishType.PUBLIC)
+            select(Wish)
+            .where(Wish.user_id == user_id, Wish.type == WishType.PUBLIC)
+            .options(selectinload(Wish.reserver))
         )
         return result.scalars().all()
 
@@ -37,12 +44,14 @@ class WishRepository(BaseRepository):
         result = await self.session.execute(
             select(Wish).where(
                 Wish.user_id == user_id, Wish.type == WishType.FRIENDS_ONLY
-            )
+            ).options(selectinload(Wish.reserver))
         )
         return result.scalars().all()
 
     async def get_by_id(self, wish_id: uuid.UUID) -> Wish | None:
-        result = await self.session.execute(select(Wish).where(Wish.id == wish_id))
+        result = await self.session.execute(
+            select(Wish).where(Wish.id == wish_id).options(selectinload(Wish.reserver))
+        )
         return result.scalars().first()
 
     async def update(self, wish_to_change: Wish, data: WishUpdate) -> Wish:

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 
 from backend.app.auth.dependencies import get_current_user
 from backend.app.auth.models import User
-from backend.app.wishes.schemas import WishCreate, WishRead, WishUpdate
+from backend.app.wishes.schemas import WishCreate, WishRead, WishReserveRead, WishUpdate
 from backend.app.wishes.services import WishService
 
 wish_service = Annotated[WishService, Depends(WishService)]
@@ -26,7 +26,7 @@ async def get_my_wishes(service: wish_service, current_user: current_user):
     return await service.get_by_user(current_user)
 
 
-@wish_router.get("/user/{user_id}", response_model=list[WishRead])
+@wish_router.get("/user/{user_id}", response_model=list[WishReserveRead])
 async def get_wishes(
     user_id: uuid.UUID, service: wish_service, current_user: current_user
 ):

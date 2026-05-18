@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from pydantic import AnyUrl, BaseModel
 
+from backend.app.auth.schemas import UserRead
 from backend.app.wishes.models import WishCategory, WishStatus, WishType
 
 
@@ -37,3 +38,7 @@ class WishRead(WishBase):
     price: Decimal
 
     # model_config = ConfigDict(from_attributes=True)
+
+
+class WishReserveRead(WishRead):
+    reserver: UserRead | None = None
