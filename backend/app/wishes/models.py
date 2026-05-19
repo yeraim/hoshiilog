@@ -10,6 +10,7 @@ from sqlalchemy import (
     ForeignKey,
     Numeric,
     String,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -41,6 +42,7 @@ class WishCategory(enum.Enum):
 
 class Wish(Base, TimeStampMixin):
     __repr_attrs__ = ["id"]
+    __table_args__ = (UniqueConstraint("title", "user_id"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -52,7 +54,7 @@ class Wish(Base, TimeStampMixin):
         UUID(as_uuid=True), ForeignKey("user.id")
     )
 
-    title: Mapped[str] = mapped_column(String(255), unique=True)
+    title: Mapped[str] = mapped_column(String(255))
     body: Mapped[str | None] = mapped_column(String(255))
     link: Mapped[str | None] = mapped_column(String(255))
     image_url: Mapped[str | None] = mapped_column(String(255))
