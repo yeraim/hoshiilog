@@ -105,12 +105,7 @@ class FollowService:
 
     async def follow_user(self, following_user: User, followed_user_id: uuid.UUID):
         followed_user = await self.user_repo.get_user_by_id(followed_user_id)
-        if not followed_user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Invalid id of followed_user",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+
         if following_user.id == followed_user.id:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -129,12 +124,7 @@ class FollowService:
 
     async def unfollow_user(self, following_user: User, followed_user_id: uuid.UUID):
         followed_user = await self.user_repo.get_user_by_id(followed_user_id)
-        if not followed_user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Invalid id of followed_user.",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+
         is_followed = await self.follow_repo.check_followers(
             following_user, followed_user
         )
