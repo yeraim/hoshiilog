@@ -35,10 +35,10 @@ class WishService:
 
             if wish.type == WishType.FRIENDS_ONLY:
                 target_user = await self.user_repo.get_user_by_id(wish.user_id)
-                if (
-                    current_user not in target_user.followers
-                    or current_user not in target_user.subscriptions
-                ):
+                are_friends = await self.user_repo.are_friends(
+                    current_user, target_user
+                )
+                if not are_friends:
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
                         detail="Can't access data",
@@ -51,11 +51,9 @@ class WishService:
         target_id = user_id or current_user.id
         if user_id and user_id != current_user.id:
             target_user: User = await self.user_repo.get_user_by_id(user_id)
+            are_friends = await self.user_repo.are_friends(current_user, target_user)
 
-            if (
-                current_user in target_user.followers
-                and current_user in target_user.subscriptions
-            ):
+            if are_friends:
                 return await self.wish_repo.get_list_by_user_friends(target_id)
 
             return await self.wish_repo.get_list_by_user_public(target_id)
