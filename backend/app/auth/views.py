@@ -54,7 +54,7 @@ async def get_users(user: current_user, service: user_service):
 async def get_user(
     user_id: uuid.UUID, current_user: current_user, service: user_service
 ):
-    return await service.get_user(user_id)
+    return await service.get_user_by_id(user_id)
 
 
 @user_router.post("/change_password", response_model=UserRead)

@@ -2,7 +2,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import Sequence
 
+from fastapi import HTTPException
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
 from backend.app.auth.models import User
@@ -21,10 +23,15 @@ class WishRepository(BaseRepository):
 
         new_wish = Wish(**data_dict, user_id=current_user.id)
         self.session.add(new_wish)
-        await self.session.flush()
+        try:
+            await self.session.flush()
+        except IntegrityError:
+            raise HTTPException(
+                status_code=400, detail="Wish with this title already exists"
+            )
         return new_wish
 
-    async def get_by_user(self, user_id: uuid.UUID) -> Sequence[Wish]:
+    async def get_list_by_user(self, user_id: uuid.UUID) -> Sequence[Wish]:
         result = await self.session.execute(
             select(Wish)
             .where(Wish.user_id == user_id)
@@ -32,7 +39,7 @@ class WishRepository(BaseRepository):
         )
         return result.scalars().all()
 
-    async def get_by_user_public(self, user_id: uuid.UUID) -> Sequence[Wish]:
+    async def get_list_by_user_public(self, user_id: uuid.UUID) -> Sequence[Wish]:
         result = await self.session.execute(
             select(Wish)
             .where(Wish.user_id == user_id, Wish.type == WishType.PUBLIC)
@@ -40,19 +47,16 @@ class WishRepository(BaseRepository):
         )
         return result.scalars().all()
 
-    async def get_by_user_friends(self, user_id: uuid.UUID) -> Sequence[Wish]:
+    async def get_list_by_user_friends(self, user_id: uuid.UUID) -> Sequence[Wish]:
         result = await self.session.execute(
-            select(Wish).where(
-                Wish.user_id == user_id, Wish.type == WishType.FRIENDS_ONLY
-            ).options(selectinload(Wish.reserver))
+            select(Wish)
+            .where(Wish.user_id == user_id, Wish.type == WishType.FRIENDS_ONLY)
+            .options(selectinload(Wish.reserver))
         )
         return result.scalars().all()
 
     async def get_by_id(self, wish_id: uuid.UUID) -> Wish | None:
-        result = await self.session.execute(
-            select(Wish).where(Wish.id == wish_id).options(selectinload(Wish.reserver))
-        )
-        return result.scalars().first()
+        return await self.get_or_404(Wish, wish_id, selectinload(Wish.reserver))
 
     async def update(self, wish_to_change: Wish, data: WishUpdate) -> Wish:
         update_data = data.model_dump(exclude_unset=True)

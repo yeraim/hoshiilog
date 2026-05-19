@@ -20,57 +20,51 @@ class WishService:
 
     async def create(self, current_user: User, data: WishCreate):
         wish = await self.wish_repo.create(current_user, data)
-        # add title duplicates validation
 
         await self.wish_repo.commit()
         await self.wish_repo.refresh(wish)
         return wish
 
-    async def get_by_id(self, wish_id: uuid.UUID):
+    async def get_by_id(self, wish_id: uuid.UUID, current_user: User):
         wish = await self.wish_repo.get_by_id(wish_id)
-        if not wish:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Invalid id of wish",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+        if wish.user_id != current_user.id:
+            if wish.type == WishType.PERSONAL:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN, detail="Can't access data"
+                )
+
+            if wish.type == WishType.FRIENDS_ONLY:
+                target_user = await self.user_repo.get_user_by_id(wish.user_id)
+                if (
+                    current_user not in target_user.followers
+                    or current_user not in target_user.subscriptions
+                ):
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Can't access data",
+                    )
         return wish
 
-    async def get_by_user(self, current_user: User, user_id: uuid.UUID | None = None):
+    async def get_list_by_user(
+        self, current_user: User, user_id: uuid.UUID | None = None
+    ):
         target_id = user_id or current_user.id
         if user_id and user_id != current_user.id:
-            target_user: User = await self.user_repo.get_user(user_id)
-
-            if not target_user:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Invalid id of user",
-                    headers={"WWW-Authenticate": "Bearer"},
-                )
+            target_user: User = await self.user_repo.get_user_by_id(user_id)
 
             if (
                 current_user in target_user.followers
                 and current_user in target_user.subscriptions
             ):
-                return await self.wish_repo.get_by_user_friends(target_id)
+                return await self.wish_repo.get_list_by_user_friends(target_id)
 
-            return await self.wish_repo.get_by_user_public(target_id)
+            return await self.wish_repo.get_list_by_user_public(target_id)
 
-        return await self.wish_repo.get_by_user(target_id)
+        return await self.wish_repo.get_list_by_user(target_id)
 
     async def update(self, wish_id: uuid.UUID, current_user: User, data: WishUpdate):
         wish = await self.wish_repo.get_by_id(wish_id)
-
-        if not wish:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Invalid id of wish",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        if wish.user_id != current_user.id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied"
-            )
+        await self.wish_repo.assert_owner(wish, current_user)
 
         wish = await self.wish_repo.update(wish, data)
         await self.wish_repo.commit()
@@ -79,17 +73,7 @@ class WishService:
 
     async def delete(self, wish_id: uuid.UUID, current_user: User):
         wish = await self.wish_repo.get_by_id(wish_id)
-
-        if not wish:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Invalid id of wish",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        if wish.user_id != current_user.id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied"
-            )
+        self.wish_repo.assert_owner(wish, current_user)
 
         await self.wish_repo.delete(wish)
         await self.wish_repo.commit()
@@ -97,12 +81,6 @@ class WishService:
     async def reserve(self, wish_id: uuid.UUID, reserver: User):
         wish = await self.wish_repo.get_by_id(wish_id)
 
-        if not wish:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Invalid id of wish",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
         if wish.user_id == reserver.id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -129,12 +107,6 @@ class WishService:
     async def cancel_reservation(self, wish_id: uuid.UUID, reserver: User):
         wish = await self.wish_repo.get_by_id(wish_id)
 
-        if not wish:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Invalid id of wish",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
         if not wish.reserver:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,

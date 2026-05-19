@@ -25,20 +25,17 @@ class UserRepository(BaseRepository):
         result = await self.session.execute(select(User))
         return result.scalars().all()
 
-    async def get_user(self, user_id: uuid.UUID) -> User | None:
-        result = await self.session.execute(
-            select(User)
-            .where(User.id == user_id)
-            .options(
-                selectinload(User.following_relationships).selectinload(
-                    Follow.followed_user
-                ),
-                selectinload(User.follower_relationships).selectinload(
-                    Follow.following_user
-                ),
-            )
+    async def get_user_by_id(self, user_id: uuid.UUID) -> User | None:
+        return await self.get_or_404(
+            User,
+            user_id,
+            selectinload(User.following_relationships).selectinload(
+                Follow.followed_user
+            ),
+            selectinload(User.follower_relationships).selectinload(
+                Follow.following_user
+            ),
         )
-        return result.scalars().first()
 
     async def change_password(self, user: User, new_password: bytes) -> User:
         user.password = new_password
