@@ -37,6 +37,29 @@ class UserRepository(BaseRepository):
             ),
         )
 
+    async def are_friends(self, user1: User, user2: User) -> bool:
+        user1_follows_user2 = (
+            select(Follow)
+            .where(
+                Follow.following_user_id == user1.id,
+                Follow.followed_user_id == user2.id,
+            )
+            .exists()
+        )
+        user2_follows_user1 = (
+            select(Follow)
+            .where(
+                Follow.following_user_id == user2.id,
+                Follow.followed_user_id == user1.id,
+            )
+            .exists()
+        )
+        result = await self.session.execute(
+            select(user1_follows_user2, user2_follows_user1)
+        )
+        a, b = result.one()
+        return a and b
+
     async def change_password(self, user: User, new_password: bytes) -> User:
         user.password = new_password
         await self.session.flush()
