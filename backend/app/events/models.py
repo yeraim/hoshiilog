@@ -2,12 +2,13 @@ import enum
 import uuid
 from decimal import Decimal
 
-from backend.app.auth.models import User
-from backend.app.database import Base
-from backend.app.mixins import TimeStampMixin
 from sqlalchemy import Enum, ForeignKey, Numeric, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from backend.app.auth.models import User
+from backend.app.database import Base
+from backend.app.mixins import TimeStampMixin
 
 
 class EventStatus(enum.Enum):
