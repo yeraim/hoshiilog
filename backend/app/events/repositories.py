@@ -52,17 +52,3 @@ class EventRepository(BaseRepository):
 
     async def delete(self, event: Event):
         return await self.session.delete(event)
-
-    # async def reserve(self, wish: Wish, reserver: User):
-    #     wish.reserver = reserver
-    #     wish.reserved_at = datetime.now(timezone.utc)
-
-    #     await self.session.flush()
-    #     return wish
-
-    # async def cancel_reservation(self, wish: Wish):
-    #     wish.reserver = None
-    #     wish.reserved_at = None
-
-    #     await self.session.flush()
-    #     return wish

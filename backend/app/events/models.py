@@ -37,5 +37,31 @@ class Event(Base, TimeStampMixin):
     price_limit: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2))
 
     owner: Mapped["User"] = relationship(
-        "User", foreign_keys=[user_id], back_populates="events"
+        "User", foreign_keys=[user_id], back_populates="owned_events"
+    )
+
+
+class EventMember(Base, TimeStampMixin):
+    __repr_attrs__ = ["id"]
+    __table_args__ = (UniqueConstraint("event_id", "user_id"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    event_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("event.id"), nullable=False
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("user.id"), nullable=False
+    )
+    target_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("user.id"),
+        comment="The person to give a gift to",
+    )
+
+    event: Mapped["Event"] = relationship("Event", foreign_keys=[event_id])
+    member: Mapped["User"] = relationship("User", foreign_keys=[user_id])
+    target_member: Mapped["User | None"] = relationship(
+        "User", foreign_keys=[target_user_id]
     )

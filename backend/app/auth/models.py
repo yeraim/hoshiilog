@@ -27,7 +27,7 @@ class User(Base, TimeStampMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     pfp: Mapped[str | None] = mapped_column(String(255))
 
-    events: Mapped[list["Event"]] = relationship(
+    owned_events: Mapped[list["Event"]] = relationship(
         "Event", back_populates="owner", foreign_keys="[Event.user_id]"
     )
 
