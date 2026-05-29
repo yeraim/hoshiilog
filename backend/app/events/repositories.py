@@ -14,6 +14,8 @@ from backend.app.events.schemas import EventCreate, EventUpdate
 class EventRepository(BaseRepository):
     async def create(self, current_user: User, data: EventCreate):
         data_dict = data.model_dump()
+        if data_dict.get("image_url"):
+            data_dict["image_url"] = str(data_dict["image_url"])
         new_event = Event(**data_dict, user_id=current_user.id)
         self.session.add(new_event)
 

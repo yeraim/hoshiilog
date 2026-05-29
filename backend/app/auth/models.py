@@ -10,6 +10,7 @@ from backend.app.database import Base
 from backend.app.mixins import TimeStampMixin
 
 if TYPE_CHECKING:
+    from backend.app.events.models import Event
     from backend.app.wishes.models import Wish
 
 
@@ -25,6 +26,10 @@ class User(Base, TimeStampMixin):
     is_staff: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     pfp: Mapped[str | None] = mapped_column(String(255))
+
+    events: Mapped[list["Event"]] = relationship(
+        "Event", back_populates="owner", foreign_keys="[Event.user_id]"
+    )
 
     wishes: Mapped[list["Wish"]] = relationship(
         "Wish", back_populates="owner", foreign_keys="[Wish.user_id]"

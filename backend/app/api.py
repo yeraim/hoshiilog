@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from backend.app.auth.views import auth_router, user_router
+from backend.app.events.views import event_router
 from backend.app.wishes.views import wish_router
 
 
@@ -39,3 +40,4 @@ def healthcheck():
 api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
 api_router.include_router(user_router, prefix="/users", tags=["users"])
 api_router.include_router(wish_router, prefix="/wishes", tags=["wishes"])
+api_router.include_router(event_router, prefix="/events", tags=["events"])
