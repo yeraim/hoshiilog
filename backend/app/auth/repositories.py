@@ -25,7 +25,7 @@ class UserRepository(BaseRepository):
         result = await self.session.execute(select(User))
         return result.scalars().all()
 
-    async def get_user_by_id(self, user_id: uuid.UUID) -> User | None:
+    async def get_user_by_id(self, user_id: uuid.UUID) -> User:
         return await self.get_or_404(
             User,
             user_id,
