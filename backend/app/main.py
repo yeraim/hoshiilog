@@ -8,21 +8,62 @@ from sqlalchemy import text
 
 from backend.app.api import api_router
 from backend.app.config import app_configs, settings
-from backend.app.database import engine
+from backend.app.exceptions import (
+    AuthenticationError,
+    ConflictError,
+    NotFoundError,
+    PermissionDeniedError,
+)
+from backend.app.infrastructure.database.session import engine
 from backend.app.logging import configure_logging
 
 log = logging.getLogger(__name__)
 configure_logging()
 
 
-async def not_found(request: Request, exc: HTTPException):
+async def not_found(request: Request, _exc: HTTPException):
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
         content={"detail": [{"msg": "Not Found."}]},
     )
 
 
-exception_handlers = {404: not_found}
+async def domain_not_found(request: Request, exc: NotFoundError):
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={"detail": exc.detail},
+    )
+
+
+async def domain_permission_denied(request: Request, exc: PermissionDeniedError):
+    return JSONResponse(
+        status_code=status.HTTP_403_FORBIDDEN,
+        content={"detail": exc.detail},
+    )
+
+
+async def domain_conflict(request: Request, exc: ConflictError):
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={"detail": exc.detail},
+    )
+
+
+async def domain_authentication_error(request: Request, exc: AuthenticationError):
+    return JSONResponse(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        content={"detail": exc.detail},
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+exception_handlers = {
+    404: not_found,
+    NotFoundError: domain_not_found,
+    PermissionDeniedError: domain_permission_denied,
+    ConflictError: domain_conflict,
+    AuthenticationError: domain_authentication_error,
+}
 
 
 async def check_db_connection():
@@ -55,7 +96,7 @@ if settings.ENVIRONMENT.is_deployed:
     )
 
 
-app = FastAPI(**app_configs, lifespan=lifespan)
+app = FastAPI(**app_configs, lifespan=lifespan, exception_handlers=exception_handlers)
 
 app.include_router(api_router, prefix="/api")
 

@@ -2,10 +2,9 @@ import uuid
 from decimal import Decimal
 from typing import Annotated
 
-from pydantic import AnyUrl, BaseModel, Field
+from pydantic import AnyUrl, BaseModel, ConfigDict, Field
 
-from backend.app.auth.schemas import UserRead
-from backend.app.events.models import EventStatus
+from backend.app.domain.entities.event import EventStatus
 
 PriceDecimal = Annotated[Decimal, Field(max_digits=10, decimal_places=2, ge=0)]
 
@@ -19,8 +18,10 @@ class EventBase(BaseModel):
 
 
 class EventRead(EventBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
-    owner: UserRead
+    user_id: uuid.UUID
 
 
 class EventCreate(EventBase): ...
