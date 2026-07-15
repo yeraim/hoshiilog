@@ -41,7 +41,7 @@ class Base(DeclarativeBase):
 
     @declared_attr.directive
     def __tablename__(cls):
-        return resolve_table_name(cls.__name__)
+        return resolve_table_name(cls.__name__.removesuffix("Model"))
 
     def dict(self):
         """Returns a dict representation of a model."""

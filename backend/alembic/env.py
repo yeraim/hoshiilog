@@ -1,11 +1,13 @@
 import sys
 from pathlib import Path
 
+from backend.app.infrastructure.database import models  # noqa: F401
+from backend.app.infrastructure.database.session import Base
+
 # This adds the root directory of your project to the Python path
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from backend.app.config import settings
-from backend.app.database import Base
 from backend.app.logging import logging
 from sqlalchemy import engine_from_config, pool
 

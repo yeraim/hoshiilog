@@ -1,10 +1,10 @@
 import uuid
 from decimal import Decimal
 
-from pydantic import AnyUrl, BaseModel
+from pydantic import AnyUrl, BaseModel, ConfigDict
 
-from backend.app.auth.schemas import UserRead
-from backend.app.wishes.models import WishCategory, WishStatus, WishType
+from backend.app.domain.entities.wish import WishCategory, WishStatus, WishType
+from backend.app.presentation.schemas.user import UserRead
 
 
 class WishBase(BaseModel):
@@ -30,14 +30,14 @@ class WishUpdate(WishBase):
 
 
 class WishRead(WishBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     title: str
     status: WishStatus
     type: WishType
     category: WishCategory
     price: Decimal
-
-    # model_config = ConfigDict(from_attributes=True)
 
 
 class WishReserveRead(WishRead):
