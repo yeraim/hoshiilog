@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 
 from backend.app.domain.entities.wish import Wish, WishType
 from backend.app.domain.repositories.wish_repository import AbstractWishRepository
+from backend.app.exceptions import ConflictError
 from backend.app.infrastructure.database.models import WishModel
 from backend.app.infrastructure.database.session import DbSession
 
@@ -20,7 +21,7 @@ class SQLAlchemyWishRepository(AbstractWishRepository):
         try:
             await self._session.flush()
         except IntegrityError:
-            raise ValueError("Wish with this title already exists")
+            raise ConflictError("Wish with this title already exists")
         return model.to_entity()
 
     async def get_by_id(self, wish_id: uuid.UUID) -> Wish | None:

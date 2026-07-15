@@ -12,7 +12,7 @@ from backend.app.infrastructure.repositories.user_repository import (
     SQLAlchemyUserRepository,
 )
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
 def get_user_repo(session: DbSession) -> AbstractUserRepository:

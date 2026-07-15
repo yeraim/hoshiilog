@@ -8,6 +8,7 @@ from backend.app.domain.repositories.event_repository import (
     AbstractEventMemberRepository,
     AbstractEventRepository,
 )
+from backend.app.exceptions import ConflictError
 from backend.app.infrastructure.database.models import EventMemberModel, EventModel
 from backend.app.infrastructure.database.session import DbSession
 
@@ -35,7 +36,7 @@ class SQLAlchemyEventRepository(AbstractEventRepository):
         try:
             await self._session.flush()
         except IntegrityError:
-            raise ValueError("Event with this title already exists")
+            raise ConflictError("Event with this title already exists")
         return model.to_entity()
 
     async def update(self, event: Event) -> Event:
@@ -77,7 +78,7 @@ class SQLAlchemyEventMemberRepository(AbstractEventMemberRepository):
         try:
             await self._session.flush()
         except IntegrityError:
-            raise ValueError("User is already a member of this event")
+            raise ConflictError("User is already a member of this event")
         return model.to_entity()
 
     async def remove_member(self, user_id: uuid.UUID, event_id: uuid.UUID) -> None:

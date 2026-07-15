@@ -122,7 +122,7 @@ async def delete_wish(
     await service.delete(wish_id, current_user)
 
 
-@wish_router.post("/reserve/{wish_id}", response_model=WishRead)
+@wish_router.post("/reserve_wish/{wish_id}", response_model=WishRead)
 async def reserve_wish(
     wish_id: uuid.UUID,
     service: WishServiceDep,
