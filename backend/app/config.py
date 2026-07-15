@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import PostgresDsn, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -27,9 +27,17 @@ class Settings(CustomBaseSettings):
     DATABASE_ENGINE_MAX_OVERFLOW: int = 10
     DATABASE_POOL_TTL: int = 60 * 20
     DATABASE_POOL_PRE_PING: bool = True
-    REDIS_URL: Optional[str] = None
+    # Redis is shared by arq's job queue, the crawler result cache, and pub/sub.
+    # Defaults to the docker-compose `redis` service; override via env in deploy.
+    REDIS_URL: str = "redis://localhost:6379/0"
     SECRET_KEY: SecretStr = SecretStr("super-secret-key-for-dev")
     ALGORITHM: str = "HS256"
+
+    # Crawler / marketplace adapter tuning.
+    # Max concurrent outbound requests per marketplace (protects each site).
+    MARKETPLACE_MAX_CONCURRENCY: int = 3
+    # arq worker concurrency; bounded by Playwright memory budget in deploy.
+    CRAWLER_MAX_JOBS: int = 10
 
     ENVIRONMENT: Environment = Environment.PRODUCTION
 

@@ -2,6 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 
 import sentry_sdk
+from arq import create_pool
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
@@ -15,6 +16,7 @@ from backend.app.exceptions import (
     PermissionDeniedError,
 )
 from backend.app.infrastructure.database.session import engine
+from backend.app.infrastructure.redis import arq_redis_settings
 from backend.app.logging import configure_logging
 
 log = logging.getLogger(__name__)
@@ -82,10 +84,16 @@ async def lifespan(app: FastAPI):
     # Run DB health check
     await check_db_connection()
 
+    # arq pool for enqueuing crawl jobs (workers run in a separate process).
+    # Reuses the project's REDIS_URL — no second Redis config.
+    app.state.arq_pool = await create_pool(arq_redis_settings())
+    log.info("arq pool ready")
+
     yield
 
     # --- Shutdown ---
     # Clean up resources, close connections, etc.
+    await app.state.arq_pool.aclose()
     await engine.dispose()
 
 

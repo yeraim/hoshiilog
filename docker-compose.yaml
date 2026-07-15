@@ -36,6 +36,26 @@ services:
       timeout: 5s
       retries: 5
 
+  # arq worker running crawl jobs in a process separate from the FastAPI app.
+  crawler_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: hoshiilog_crawler_worker
+    restart: unless-stopped
+    environment:
+      # Reuse the project's settings; point Redis at the compose service.
+      REDIS_URL: "redis://redis:6379/0"
+      ENVIRONMENT: "LOCAL"
+      LOG_LEVEL: "INFO"
+      # Tune down if Playwright memory pressure shows up (see WorkerSettings).
+      CRAWLER_MAX_JOBS: "10"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - database-network
+
 volumes:
   postgres_data:
   redis_data:

@@ -1,0 +1,29 @@
+# arq crawler worker.
+#
+# Based on the official Playwright Python image so headless Chromium (used by
+# the kaspi/ozon adapters) is preinstalled and matches the pinned playwright
+# version — no `playwright install` step needed.
+#
+# Import root is the repo root (`backend` is a package, imported as
+# `backend.app.*`), mirroring the local `uv --project backend run ...` workflow.
+FROM mcr.microsoft.com/playwright/python:v1.61.0-jammy
+
+# uv for dependency management.
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1 \
+    UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1
+
+# 1) Install dependencies only, for better layer caching.
+COPY backend/pyproject.toml backend/uv.lock backend/.python-version /app/backend/
+RUN uv sync --project backend --frozen --no-dev --no-install-project
+
+# 2) Copy the app code and finish the install.
+COPY backend /app/backend
+RUN uv sync --project backend --frozen --no-dev
+
+# REDIS_URL / ENVIRONMENT are supplied via env (see docker-compose).
+CMD ["uv", "--project", "backend", "run", "arq", \
+     "backend.app.workers.crawler_worker.WorkerSettings"]
