@@ -1,13 +1,14 @@
 import sys
 from pathlib import Path
 
-from backend.app.infrastructure.database import models  # noqa: F401
-from backend.app.infrastructure.database.session import Base
-
-# This adds the root directory of your project to the Python path
+# This adds the root directory of your project to the Python path.
+# Must run before any `backend.*` imports so alembic works regardless of cwd
+# (e.g. when invoked with `--directory backend`).
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from backend.app.config import settings
+from backend.app.config import settings  # noqa: E402
+from backend.app.infrastructure.database import models  # noqa: F401, E402
+from backend.app.infrastructure.database.session import Base  # noqa: E402
 from backend.app.logging import logging
 from sqlalchemy import engine_from_config, pool
 
