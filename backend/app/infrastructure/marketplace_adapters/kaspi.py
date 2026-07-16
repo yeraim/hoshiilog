@@ -18,6 +18,7 @@ import re
 from urllib.parse import quote_plus
 
 from playwright.async_api import Error as PlaywrightError
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
 from backend.app.infrastructure.browser_pool import browser_pool
 from backend.app.infrastructure.marketplace_adapters.base import (
@@ -81,6 +82,13 @@ class KaspiAdapter(BaseAdapter):
                         timeout=PLAYWRIGHT_GOTO_TIMEOUT_MS,
                         wait_until="domcontentloaded",
                     )
+                    # SPA: the product heading renders after DOM load.
+                    try:
+                        await page.wait_for_selector(
+                            ".item__heading", timeout=PLAYWRIGHT_GOTO_TIMEOUT_MS
+                        )
+                    except PlaywrightTimeoutError:
+                        pass  # fall through -> title stays None -> AdapterError below
                     title = await _text_or_none(page, ".item__heading")
                     price = _parse_price(await _text_or_none(page, ".item__price-once"))
                     image = await _attr_or_none(page, ".item__slider-main img", "src")
@@ -121,6 +129,14 @@ class KaspiAdapter(BaseAdapter):
                         timeout=PLAYWRIGHT_GOTO_TIMEOUT_MS,
                         wait_until="domcontentloaded",
                     )
+                    # Result cards render via JS after DOM load; wait for them.
+                    # A timeout means no results (empty search) -> not_found.
+                    try:
+                        await page.wait_for_selector(
+                            ".item-card", timeout=PLAYWRIGHT_GOTO_TIMEOUT_MS
+                        )
+                    except PlaywrightTimeoutError:
+                        return []
                     cards = await page.query_selector_all(".item-card")
                     for card in cards[: limit * 3]:
                         name_el = await card.query_selector(".item-card__name")

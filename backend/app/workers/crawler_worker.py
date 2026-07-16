@@ -61,13 +61,19 @@ async def _search_one(
             source=source, matches=matches, marketplace=target, status=status
         )
         log.info(
-            "adapter search complete",
+            "adapter search complete: job=%s marketplace=%s matches=%d",
+            job_id,
+            target,
+            len(matches),
             extra={"job_id": job_id, "marketplace": target, "matches": len(matches)},
         )
         return result
     except AdapterError as exc:
         log.warning(
-            "adapter search failed",
+            "adapter search failed: job=%s marketplace=%s error=%s",
+            job_id,
+            target,
+            exc.message,
             extra={"job_id": job_id, "marketplace": target, "error": exc.message},
         )
         # TODO(retry): retry/backoff for transient marketplace failures would go
@@ -116,7 +122,10 @@ async def run_crawl_job(ctx: dict, job_id: str, url: str) -> None:
             source = await source_adapter.parse_product(url)
         except AdapterError as exc:
             log.warning(
-                "source parse failed",
+                "source parse failed: job=%s marketplace=%s error=%s",
+                job_id,
+                source_mp,
+                exc.message,
                 extra={
                     "job_id": job_id,
                     "marketplace": source_mp,

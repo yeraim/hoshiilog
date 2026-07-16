@@ -68,7 +68,9 @@ class BrowserPool:
             )
         # TODO(proxy): pass proxy={"server": ...} per-marketplace here once
         # proxy rotation is wired up for a real deployment.
-        context = await self._browser.new_context(user_agent=_DEFAULT_USER_AGENT)
+        context = await self._browser.new_context(
+            user_agent=_DEFAULT_USER_AGENT, locale="ru-RU"
+        )
         try:
             yield context
         finally:

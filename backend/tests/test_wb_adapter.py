@@ -18,6 +18,16 @@ def test_extract_nm_raises_on_bad_url() -> None:
         wb._extract_nm("https://www.wildberries.ru/brands/nike")
 
 
+def test_extract_products_handles_top_level_and_nested() -> None:
+    # v18: products at the top level.
+    assert wb._extract_products({"products": [{"id": 1}], "total": 1}) == [{"id": 1}]
+    # legacy: nested under data.
+    assert wb._extract_products({"data": {"products": [{"id": 2}]}}) == [{"id": 2}]
+    # empty / missing.
+    assert wb._extract_products({"data": {}}) == []
+    assert wb._extract_products({}) == []
+
+
 def test_price_from_sizes_converts_kopeks_and_takes_min() -> None:
     sizes = [
         {"price": {"basic": 1000000, "product": 999000}},  # 9990.0
@@ -32,19 +42,20 @@ def test_price_from_sizes_none_when_absent() -> None:
 
 
 def test_image_url_pattern() -> None:
-    url = wb._image_url(159206280)
+    nm = 159206280
+    url = wb._image_url(nm, wb._guess_shard(nm))
     assert url.startswith("https://basket-")
     assert "wbbasket.ru/vol1592/part159206/159206280/images/big/1.webp" in url
 
 
-def test_product_from_json_maps_fields() -> None:
+def test_product_from_search_json_maps_fields() -> None:
     item = {
         "id": 12345678,
         "name": "Кроссовки беговые",
         "brand": "Nike",
         "sizes": [{"price": {"product": 500000}}],
     }
-    product = wb._product_from_json(item)
+    product = wb._product_from_search_json(item)
     assert product.marketplace == "wb"
     assert product.external_id == "12345678"
     assert product.title == "Кроссовки беговые"

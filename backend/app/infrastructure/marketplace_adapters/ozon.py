@@ -19,6 +19,7 @@ import re
 from urllib.parse import quote_plus
 
 from playwright.async_api import Error as PlaywrightError
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
 from backend.app.infrastructure.browser_pool import browser_pool
 from backend.app.infrastructure.marketplace_adapters.base import (
@@ -83,6 +84,13 @@ class OzonAdapter(BaseAdapter):
                         timeout=PLAYWRIGHT_GOTO_TIMEOUT_MS,
                         wait_until="domcontentloaded",
                     )
+                    # SPA: wait for the product title to render.
+                    try:
+                        await page.wait_for_selector(
+                            "h1", timeout=PLAYWRIGHT_GOTO_TIMEOUT_MS
+                        )
+                    except PlaywrightTimeoutError:
+                        pass  # title stays None -> AdapterError below
                     # Ozon class names are obfuscated/rotating; anchor on the
                     # semantic h1 for the title and a price data attribute.
                     title = await _text_or_none(page, "h1")
@@ -129,6 +137,14 @@ class OzonAdapter(BaseAdapter):
                         timeout=PLAYWRIGHT_GOTO_TIMEOUT_MS,
                         wait_until="domcontentloaded",
                     )
+                    # Result tiles render via JS; wait for product anchors.
+                    # A timeout means no results -> not_found.
+                    try:
+                        await page.wait_for_selector(
+                            "a[href*='/product/']", timeout=PLAYWRIGHT_GOTO_TIMEOUT_MS
+                        )
+                    except PlaywrightTimeoutError:
+                        return []
                     # Product tiles link to /product/...; harvest those anchors.
                     links = await page.query_selector_all("a[href*='/product/']")
                     seen: set[str] = set()
