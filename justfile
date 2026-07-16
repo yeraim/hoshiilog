@@ -20,6 +20,9 @@ lint:
   uv --project backend run --directory backend ruff format app
   just ruff --fix
 
+arq:
+  uv --project backend run arq backend.app.workers.crawler_worker.WorkerSettings
+
 # docker
 up:
   docker-compose up -d
