@@ -1,9 +1,12 @@
 import logging
+from collections.abc import Callable, Coroutine
 from contextlib import asynccontextmanager
+from typing import Any
 
 import sentry_sdk
 from arq import create_pool
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import FastAPI, HTTPException, Request, Response, status
+from fastapi.datastructures import State
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
@@ -59,8 +62,10 @@ async def domain_authentication_error(request: Request, exc: AuthenticationError
     )
 
 
-exception_handlers = {
-    404: not_found,
+exception_handlers: dict[
+    int | type[Exception],
+    Callable[[Request[State], Any], Coroutine[Any, Any, Response]],
+] = {
     NotFoundError: domain_not_found,
     PermissionDeniedError: domain_permission_denied,
     ConflictError: domain_conflict,
